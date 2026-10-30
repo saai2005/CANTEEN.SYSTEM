@@ -1,0 +1,9 @@
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+node_modules/
+.env
+.env.*
+!.env.example
+/Laxmi Caterers Menu New MPSTME.pdf

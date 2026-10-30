@@ -1,0 +1,13 @@
+{
+  "name": "mpstme-canteen",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MPSTME New Canteen ordering app and SQLite backend",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
