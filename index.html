@@ -674,40 +674,74 @@
 
     const foodPhotos = {
       thali: "assets/food/thali.jpg",
-      southIndian: "assets/food/idli.jpg",
-      snack: "assets/food/samosa.jpg",
-      sandwich: "assets/food/sandwich.jpg",
-      shake: "assets/food/shake.jpg",
-      egg: "assets/food/egg-toast.jpg",
+      dosa: "assets/food/dosa.jpg",
+      idli: "assets/food/idli.jpg",
+      vadaPav: "assets/food/vada-pav.jpg",
+      samosa: "assets/food/samosa.jpg",
+      chaat: "assets/food/chaat.jpg",
+      choleBhature: "assets/food/chole-bhature.jpg",
       pavBhaji: "assets/food/pav-bhaji.jpg",
-      curry: "assets/food/paneer-curry.jpg",
-      juice: "assets/food/juice.jpg",
+      sandwich: "assets/food/sandwich.jpg",
       pizza: "assets/food/pizza.jpg",
       pasta: "assets/food/pasta.jpg",
-      chinese: "assets/food/fried-rice.jpg",
-      tea: "assets/food/tea.jpg"
+      noodles: "assets/food/noodles.jpg",
+      friedRice: "assets/food/fried-rice.jpg",
+      curry: "assets/food/paneer-curry.jpg",
+      biryani: "assets/food/biryani.jpg",
+      egg: "assets/food/egg-toast.jpg",
+      tea: "assets/food/tea.jpg",
+      shake: "assets/food/shake.jpg",
+      juice: "assets/food/juice.jpg"
     };
 
     function foodPhotoFor(category, name) {
-      if (category === "Pav bhaji specials") return foodPhotos.pavBhaji;
-      if (category === "South Indian" || /dosa|uttapam|idli|medu wada/i.test(name)) return foodPhotos.southIndian;
-      if (category === "Hot beverages") return foodPhotos.tea;
-      if (category === "Breakfast" || category === "Egg specials") return foodPhotos.egg;
-      if (category === "Frankies" || category === "Sandwiches") return foodPhotos.sandwich;
-      if (category === "Pizza") return foodPhotos.pizza;
-      if (category === "Maggi" || category === "Pasta & fries") return foodPhotos.pasta;
-      if (category === "Paneer curries" || category === "Veg curries") return foodPhotos.curry;
-      if (category === "Breads" || category === "Rice & biryani") return foodPhotos.thali;
-      if (category === "Chinese") return foodPhotos.chinese;
-      if (category === "Snacks" || category === "Chaat") return foodPhotos.snack;
-      if (category === "Beverages") {
-        return /juice|soda|cooler|sharbat|mojito|jaljeera/i.test(name)
-          ? foodPhotos.juice
-          : foodPhotos.shake;
-      }
-      if (category === "More favourites") {
-        return /dosa|uttapam/i.test(name) ? foodPhotos.southIndian : foodPhotos.sandwich;
-      }
+      const n = (name || "").toLowerCase();
+      const c = (category || "").toLowerCase();
+
+      // Precise item name matching
+      if (n.includes("dosa")) return foodPhotos.dosa;
+      if (n.includes("idli")) return foodPhotos.idli;
+      if (n.includes("medu") || n.includes("wada") && !n.includes("vada pav") && !n.includes("wada pav")) return foodPhotos.idli;
+      if (n.includes("vada pav") || n.includes("wada pav") || n.includes("batata vada")) return foodPhotos.vadaPav;
+      if (n.includes("samosa")) return foodPhotos.samosa;
+      if (n.includes("pav bhaji")) return foodPhotos.pavBhaji;
+      if (n.includes("chole") || n.includes("bhatura") || n.includes("puri bhaji") || n.includes("poori")) return foodPhotos.choleBhature;
+      if (n.includes("poha") || n.includes("upma") || n.includes("sheera")) return foodPhotos.idli;
+      if (n.includes("misal") || n.includes("missal")) return foodPhotos.pavBhaji;
+      if (n.includes("bhel") || n.includes("sev puri") || n.includes("pani puri") || n.includes("chaat") || n.includes("dahi puri") || n.includes("ragda") || n.includes("pakoda")) return foodPhotos.chaat;
+      if (n.includes("frankie") || n.includes("franky") || n.includes("roll") || n.includes("wrap")) return foodPhotos.sandwich;
+      if (n.includes("sandwich") || n.includes("toast") || n.includes("grilled") || n.includes("bun maska") || n.includes("bread butter")) return foodPhotos.sandwich;
+      if (n.includes("pizza")) return foodPhotos.pizza;
+      if (n.includes("pasta") || n.includes("macaroni") || n.includes("fries") || n.includes("chips")) return foodPhotos.pasta;
+      if (n.includes("maggi") || n.includes("noodle") || n.includes("chowmein") || n.includes("chop suey")) return foodPhotos.noodles;
+      if (n.includes("fried rice") || n.includes("schezwan rice") || n.includes("triple rice") || n.includes("singapore rice") || n.includes("shanghai rice")) return foodPhotos.friedRice;
+      if (n.includes("manchurian") || n.includes("chilli dry") || n.includes("chilly dry") || n.includes("crispy") || n.includes("spring roll") || n.includes("soup")) return foodPhotos.friedRice;
+      if (n.includes("biryani") || n.includes("pulao") || n.includes("jeera rice")) return foodPhotos.biryani;
+      if (n.includes("roti") || n.includes("naan") || n.includes("paratha") || n.includes("kulcha") || n.includes("chapati")) return foodPhotos.thali;
+      if (n.includes("paneer") || n.includes("curry") || n.includes("masala") || n.includes("korma") || n.includes("kofta") || n.includes("dal") || n.includes("chana") || n.includes("sabji") || n.includes("bhendi") || n.includes("kaju") || n.includes("soya") || n.includes("mutter") || n.includes("methi")) return foodPhotos.curry;
+      if (n.includes("egg") || n.includes("omelette") || n.includes("bhurji") || n.includes("ghotala") || n.includes("anda")) return foodPhotos.egg;
+      if (n.includes("coffee") || n.includes("tea") || n.includes("chai") || n.includes("milk") || n.includes("bournvita") || n.includes("chocolate")) return foodPhotos.tea;
+      if (n.includes("shake") || n.includes("oreo") || n.includes("kitkat") || n.includes("cold coffee") || n.includes("lassi") || n.includes("buttermilk") || n.includes("falooda")) return foodPhotos.shake;
+      if (n.includes("juice") || n.includes("soda") || n.includes("cooler") || n.includes("sharbat") || n.includes("mojito") || n.includes("lemonade") || n.includes("jaljeera") || n.includes("water")) return foodPhotos.juice;
+      if (n.includes("thali") || n.includes("meal")) return foodPhotos.thali;
+
+      // Category based fallbacks
+      if (c.includes("pav bhaji")) return foodPhotos.pavBhaji;
+      if (c.includes("south indian")) return foodPhotos.dosa;
+      if (c.includes("hot beverages")) return foodPhotos.tea;
+      if (c.includes("breakfast")) return foodPhotos.idli;
+      if (c.includes("egg")) return foodPhotos.egg;
+      if (c.includes("franky") || c.includes("frankie") || c.includes("sandwich")) return foodPhotos.sandwich;
+      if (c.includes("pizza")) return foodPhotos.pizza;
+      if (c.includes("maggi")) return foodPhotos.noodles;
+      if (c.includes("pasta")) return foodPhotos.pasta;
+      if (c.includes("chinese")) return foodPhotos.friedRice;
+      if (c.includes("chaat")) return foodPhotos.chaat;
+      if (c.includes("north indian")) return foodPhotos.curry;
+      if (c.includes("lunch")) return foodPhotos.thali;
+      if (c.includes("shake") || c.includes("lassi")) return foodPhotos.shake;
+      if (c.includes("juice")) return foodPhotos.juice;
+
       return foodPhotos.thali;
     }
 
@@ -1484,7 +1518,7 @@
         const estimate = availability.available ? estimateForGroups([{ station: current.station, prep: current.prep }]).total : 0;
         return `<article class="food-card${availability.available ? "" : " unavailable"}">
           <div class="food-photo" style="background-image:url('${item.photo}'),linear-gradient(135deg,#e8eee1,#f0dfc8)">
-            <span class="veg-badge"><span class="veg-dot"></span> VEG</span>
+            ${item.category === "Egg" || /egg|anda|omelette|bhurji|ghotala/i.test(item.name) ? '<span class="veg-badge" style="color:#8c5b1e;"><span class="veg-dot" style="border-color:#8c5b1e;background:#d99b3b;"></span> EGG</span>' : '<span class="veg-badge"><span class="veg-dot"></span> VEG</span>'}
             <span class="food-emoji">${item.emoji}</span>
           </div>
           <div class="food-info">
