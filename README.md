@@ -1,6 +1,14 @@
 # MPSTME New Canteen
 
-This repository contains the original Node.js/SQLite application and a Python Streamlit edition for Streamlit Community Cloud. The Streamlit edition includes student sign-in and ordering, the full 272-item menu, per-counter kitchen tickets, a cash desk, demo-only UPI/card selections, and per-counter neural-network wait estimates.
+The primary application is the original Node.js/SQLite canteen system in `index.html` and `server.js`. The Python Streamlit edition is an optional alternative. To preserve the existing browser UI, deploy the Node.js app using the Render Blueprint below.
+
+## Deploy the original UI on Render
+
+1. In Render, create a **Blueprint** from this GitHub repository's `main` branch. Render reads `render.yaml` and deploys the Node.js app with a persistent SQLite disk.
+2. During setup, enter a strong, private `CANTEEN_ADMIN_PASSWORD` and an admin username. Enter `saai12345` for `CANTEEN_DEMO_PASSWORD` if you want the requested demo login; `CANTEEN_DEMO_USERNAME` is preconfigured as `saai`. Set both passwords only in Render's environment-variable prompts, never in GitHub.
+3. Wait for the service health check to pass, then open its `onrender.com` URL. The deployed student, kitchen, cash desk, and admin interfaces use the existing `index.html` UI.
+
+The Blueprint uses a paid Starter web service and a 1 GB persistent disk for SQLite accounts, orders, and backups. Render bills for those resources under its current pricing; confirm the displayed charges in Render before creating the service. The first configured administrator creates Kitchen and Cashier accounts from the Admin screen. UPI and card checkout are demo flows, not real payment processing.
 
 ## Run the Streamlit edition
 

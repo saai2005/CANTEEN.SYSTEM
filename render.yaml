@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: mpstme-canteen
+    runtime: node
+    region: singapore
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: canteen-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.1
+      - key: HOST
+        value: 0.0.0.0
+      - key: CANTEEN_DATA_DIR
+        value: /var/data
+      - key: CANTEEN_ADMIN_USERNAME
+        sync: false
+      - key: CANTEEN_ADMIN_NAME
+        value: Canteen Admin
+      - key: CANTEEN_ADMIN_PASSWORD
+        sync: false
+      - key: CANTEEN_DEMO_USERNAME
+        value: saai
+      - key: CANTEEN_DEMO_NAME
+        value: Sai Demo
+      - key: CANTEEN_DEMO_PASSWORD
+        sync: false

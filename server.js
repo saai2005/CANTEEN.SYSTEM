@@ -253,10 +253,10 @@ function recordAction(actor, action, targetType, targetId, details = {}) {
   );
 }
 
-function createUser(username, name, password, role) {
+function createUser(username, name, password, role, minimumPasswordLength = 10) {
   if (!/^[\w.@+-]{3,80}$/.test(username)) throw httpError(400, "Username must be 3–80 letters, numbers, or . _ @ + -.");
   if (name.length < 1 || name.length > 100) throw httpError(400, "Enter a name up to 100 characters.");
-  if (password.length < 10 || password.length > 200) throw httpError(400, "Password must be 10–200 characters.");
+  if (password.length < minimumPasswordLength || password.length > 200) throw httpError(400, `Password must be ${minimumPasswordLength}–200 characters.`);
   if (!ROLES.has(role)) throw httpError(400, "Choose a valid account role.");
   const credentials = hashPassword(password);
   const user = { id: crypto.randomUUID(), username, name, role };
@@ -986,8 +986,24 @@ async function bootstrapAdmin() {
   } finally { prompt.close(); }
 }
 
+function bootstrapDemoStudent() {
+  const username = process.env.CANTEEN_DEMO_USERNAME || "";
+  const password = process.env.CANTEEN_DEMO_PASSWORD || "";
+  if (!username || !password) return;
+  const existing = statements.userByName.get(username);
+  if (existing) {
+    if (existing.role !== "student") throw new Error(`Configured demo account "${username}" already exists with a different role.`);
+    return;
+  }
+  const name = process.env.CANTEEN_DEMO_NAME || "Sai Demo";
+  const user = createUser(username, name, password, "student", 8);
+  delete process.env.CANTEEN_DEMO_PASSWORD;
+  console.log(`Created configured demo student "${user.username}".`);
+}
+
 async function main() {
   await bootstrapAdmin();
+  bootstrapDemoStudent();
   backupDatabase();
   applyRetentionPolicy();
   setInterval(() => { backupDatabase(); applyRetentionPolicy(); }, 24 * 60 * 60 * 1000).unref();
