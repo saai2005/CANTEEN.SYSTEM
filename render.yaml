@@ -15,7 +15,7 @@ services:
       - key: CANTEEN_DATA_DIR
         value: /tmp/canteen-data
       - key: CANTEEN_ADMIN_USERNAME
-        sync: false
+        value: canteen-admin
       - key: CANTEEN_ADMIN_NAME
         value: Canteen Admin
       - key: CANTEEN_ADMIN_PASSWORD

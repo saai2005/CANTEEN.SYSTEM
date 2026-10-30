@@ -5,7 +5,7 @@ The primary application is the original Node.js/SQLite canteen system in `index.
 ## Deploy the original UI on Render
 
 1. In Render, create a **Blueprint** from this GitHub repository's `main` branch. Render reads `render.yaml` and deploys the Node.js app on its free web-service plan.
-2. During setup, enter a strong, private `CANTEEN_ADMIN_PASSWORD` and an admin username. `CANTEEN_DEMO_USERNAME` is preconfigured as `saai`; set `CANTEEN_DEMO_PASSWORD` privately in Render if you want the demo login. Never put passwords in GitHub.
+2. During setup, set a strong, private `CANTEEN_ADMIN_PASSWORD`. The admin username is `canteen-admin`. `CANTEEN_DEMO_USERNAME` is preconfigured as `saai`; set `CANTEEN_DEMO_PASSWORD` privately in Render if you want the demo login. Never put passwords in GitHub.
 3. Wait for the service health check to pass, then open its `onrender.com` URL. The deployed student, kitchen, cash desk, and admin interfaces use the existing `index.html` UI.
 
 The free service uses temporary local SQLite storage. Free instances can sleep when idle, and accounts, orders, and backups can be lost on a restart or redeploy. The Blueprint does not create paid resources or require billing setup. The first configured administrator creates Kitchen and Cashier accounts from the Admin screen. UPI and card checkout are demo flows, not real payment processing.
