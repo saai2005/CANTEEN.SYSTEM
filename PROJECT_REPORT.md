@@ -6,8 +6,8 @@
 **Canteen operator:** Laxmi Caterers  
 **Institution:** Mukesh Patel School of Technology Management & Engineering (MPSTME)  
 **Project type:** Mobile-friendly, browser-based food ordering and canteen operations system  
-**Current implementation:** Single-page HTML/CSS/JavaScript client, Node.js HTTP server, and SQLite database  
-**Status:** Local/LAN demonstration system; online payments are simulated
+**Current implementation:** Three role-specific HTML entry pages, a shared HTML/CSS/JavaScript application, Node.js HTTP server, and SQLite database
+**Status:** Render-hosted demonstration system; UPI/card payments are simulated and Render's free local storage is temporary
 
 ---
 
@@ -17,7 +17,7 @@ The project digitizes food ordering and order preparation for a campus canteen. 
 
 The central operational idea is that food is prepared at five independent counters. A meal-counter queue should affect meal estimates, but should not make a drink-counter estimate longer. The system assigns each menu item to a counter and trains a separate neural-network wait predictor for each counter from actual completed-ticket data. During the per-counter cold start, it clearly falls back to the existing preparation/workload estimate.
 
-When run using `npm start`, the app uses a local Node.js server and SQLite database so separate devices on the configured network can share records. Opening `index.html` directly is a separate, local browser demo and is not the recommended way to demonstrate shared data.
+When run using `npm start`, the app uses a Node.js server and SQLite database so its three role-specific pages share the same accounts and orders. Use the server URLs rather than opening an HTML file directly.
 
 ---
 
@@ -68,16 +68,19 @@ Customer accounts can self-register as student, faculty, or staff. Worker accoun
 ### High-level components
 
 ```text
-Student / Faculty browser ─┐
-Kitchen browser ───────────┼── HTTP requests and periodic polling ── Node.js server ── SQLite
-Cash desk / Admin browser ─┘                                      └── Serves index.html
+student.html ─┐
+kitchen.html ─┼── shared index.html app ── HTTP requests/polling ── Node.js server ── SQLite
+cashier.html ─┘                                                  └── serves page shells/assets
 ```
 
 ### Front end
 
-- `index.html` contains the single-page user interface, styles, menu catalog, and client-side application logic.
+- `student.html`, `kitchen.html`, and `cashier.html` are separate page entry points for the student, kitchen, and cash-desk workflows. Each loads the same `index.html` application in its role-specific mode so the existing UI and shared functionality stay consistent.
+- `index.html` contains the shared user interface, styles, menu catalog, role-scoped application logic, and browser-side API integration.
 - The UI is built with standard HTML, CSS, and browser JavaScript; there is no separate front-end framework or bundler.
-- The layout includes student menu/cart, orders/history, kitchen board, settings, and cash-desk/admin views.
+- The student page presents the menu, cart, checkout, queue estimates, and customer history. The kitchen page presents incoming orders and preparation counters. The cash-desk page presents COD payments and handover. Admin controls remain in the combined root interface.
+- `student.html`, `kitchen.html`, and `cashier.html` are lightweight full-window HTML shells that load the shared app with a role-specific mode. They are separate entry pages, not three duplicated copies of the app.
+- Role-specific pages filter navigation and views, while the Node.js server independently enforces permissions for every protected API action.
 - In server mode, the browser calls the same-origin JSON API and periodically checks for updated data.
 - In local-file demo mode, the app uses browser storage. That mode does not provide authenticated, cross-device records.
 
@@ -107,7 +110,10 @@ Order details are stored as JSON in the `orders.data_json` field. The payment an
 
 ## 5. Main files
 
-- [index.html](C:/Users/HP/OneDrive/Desktop/canteen/index.html) — menu catalog, responsive UI, cart and checkout, student history, kitchen workflow, cash desk, settings, estimates, and browser-side API integration.
+- [student.html](C:/Users/HP/OneDrive/Desktop/canteen/student.html) — student-facing page entry point.
+- [kitchen.html](C:/Users/HP/OneDrive/Desktop/canteen/kitchen.html) — kitchen page entry point.
+- [cashier.html](C:/Users/HP/OneDrive/Desktop/canteen/cashier.html) — cash-desk page entry point.
+- [index.html](C:/Users/HP/OneDrive/Desktop/canteen/index.html) — shared UI, menu catalog, application logic, and browser-side API integration.
 - [server.js](C:/Users/HP/OneDrive/Desktop/canteen/server.js) — HTTP API, SQLite schema, authentication, authorization, catalog validation, order-state checks, payment and admin auditing, exports, backup, and retention.
 - [package.json](C:/Users/HP/OneDrive/Desktop/canteen/package.json) — Node.js engine requirement and `start`/`test` scripts. The project currently has no npm runtime dependencies.
 - [README.md](C:/Users/HP/OneDrive/Desktop/canteen/README.md) — local startup, account setup, network access, data location, backup, and payment limitations.
@@ -399,7 +405,11 @@ cd C:\Users\HP\OneDrive\Desktop\canteen
 npm start
 ```
 
-Then open `http://localhost:4173`. Do not open `index.html` directly if you need accounts, shared server state, or cross-device behavior.
+Open `http://localhost:4173/student.html`, `http://localhost:4173/kitchen.html`, or `http://localhost:4173/cashier.html`. Open the root URL for the combined Admin interface. Do not open an HTML file directly if you need accounts or shared server state.
+
+### Render deployment
+
+The Render Blueprint starts the same Node.js server using `npm start`. The three role routes are `/student.html`, `/kitchen.html`, and `/cashier.html`; the root route remains the combined Admin interface. On the configured free plan, SQLite data is stored under `/tmp/canteen-data`, which is temporary and can be lost when the service restarts or redeploys.
 
 ### First administrator
 
@@ -431,6 +441,7 @@ Enter a password of at least 10 characters. On an existing installation, use the
 - Neural queue API integration: completed eight counter tickets through the authenticated customer/kitchen API workflow; verified the counter model activated with eight saved samples, was reported as active to the admin, and completed tickets no longer contributed to live queue load.
 - API smoke check with two student accounts: a customer saw another customer's Meals queue count/workload, did not see the other account's own queue in the cross-customer aggregate, saw other counters remain independent, and received no customer name or order number from the queue API.
 - Browser smoke check: the signed-in student UI displayed the shared Meals workload and adjusted its wait estimate.
+- Page smoke check: all three dedicated HTML routes and `/api/health` returned HTTP 200 on an isolated local Node.js server.
 - Earlier API/browser checks covered student history privacy, admin ledger rendering, order status and payment flows; these checks are not a substitute for a maintained automated regression suite.
 
 ### Recommended tests to add
@@ -499,8 +510,8 @@ Orders and their status are shared and searchable, customers can see progress, a
 **6. What technologies are used?**  
 HTML, CSS, and browser JavaScript on the frontend; Node.js built-in HTTP and SQLite APIs on the backend; SQLite for persistence.
 
-**7. Why is the project a single-page app?**  
-The main user views can change without loading a separate page for each role. The app is delivered from one main HTML file and uses JavaScript to render the selected view.
+**7. Why are there separate HTML pages for each role?**
+The student, kitchen, and cash-desk workflows have distinct entry URLs and focused interfaces. Each page shell loads the common UI/application in a role-specific mode so orders, permissions, styling, and behavior stay connected without duplicating core logic.
 
 **8. Why use SQLite?**  
 It is a lightweight relational database stored in a local file, requires no separate database server for this prototype, supports transactions, and is suitable for a local canteen demonstration.

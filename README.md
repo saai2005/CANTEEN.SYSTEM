@@ -1,39 +1,20 @@
 # MPSTME New Canteen
 
-The primary application is the original Node.js/SQLite canteen system in `index.html` and `server.js`. The Python Streamlit edition is an optional alternative. To preserve the existing browser UI, deploy the Node.js app using the Render Blueprint below.
+The application is the Node.js/SQLite canteen system in `index.html` and `server.js`. Its student, kitchen, and cash-desk pages keep the existing interface and share the same authenticated API and order database.
 
 ## Deploy the original UI on Render
 
 1. In Render, create a **Blueprint** from this GitHub repository's `main` branch. Render reads `render.yaml` and deploys the Node.js app on its free web-service plan.
 2. During setup, set a strong, private `CANTEEN_ADMIN_PASSWORD`. The admin username is `canteen-admin`. `CANTEEN_DEMO_USERNAME` is preconfigured as `saai`; set `CANTEEN_DEMO_PASSWORD` privately in Render if you want the demo login. Never put passwords in GitHub.
-3. Wait for the service health check to pass, then open its `onrender.com` URL. The deployed student, kitchen, cash desk, and admin interfaces use the existing `index.html` UI.
+3. Wait for the service health check to pass, then use these pages on its `onrender.com` URL:
+   - `/student.html` — menu, checkout, queue estimates, and the customer's own order history.
+   - `/kitchen.html` — incoming orders and preparation counters; requires a Kitchen or Admin account.
+   - `/cashier.html` — payment ledger and order handover; requires a Cashier or Admin account.
+   - `/` — the original combined interface, including Admin controls.
 
 The free service uses temporary local SQLite storage. Free instances can sleep when idle, and accounts, orders, and backups can be lost on a restart or redeploy. The Blueprint does not create paid resources or require billing setup. The first configured administrator creates Kitchen and Cashier accounts from the Admin screen. UPI and card checkout are demo flows, not real payment processing.
 
-## Run the Streamlit edition
-
-1. Install Python 3.11 or newer.
-2. Install its dependencies:
-
-   ```powershell
-   python -m pip install -r requirements.txt
-   ```
-3. Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml`. Replace the placeholder passwords with private values; do not commit `secrets.toml`.
-4. Start the app:
-
-   ```powershell
-   streamlit run streamlit_app.py
-   ```
-
-The demo student username is configured as `saai`; set `DEMO_PASSWORD` in the private secrets file to the requested demo password. Optional kitchen, cashier, and administrator accounts are provisioned from the other secret values. Student self-registration is also available.
-
-### Deploy on Streamlit Community Cloud
-
-Create an app from this repository's `main` branch, set the app file to `streamlit_app.py`, and add the values from `.streamlit/secrets.toml.example` in **App settings → Secrets**. Keep the passwords in Streamlit's secret store, not in GitHub. The app uses local SQLite for demonstration data; Community Cloud's local filesystem is not a durable database, so orders and accounts can be lost when the app is restarted or redeployed. UPI and card choices are demonstrations, not real payment processing.
-
 ## Run locally
-
-The original Node.js app remains available separately:
 
 1. Install Node.js 22.5 or newer (Node.js 24 is recommended).
 2. In this folder, create the first administrator:
@@ -43,7 +24,7 @@ The original Node.js app remains available separately:
    ```
 
    Enter a password of at least 10 characters when prompted. This command also starts the app. For later starts, run `npm start`.
-3. Open `http://localhost:4173`.
+3. Open `http://localhost:4173/student.html`, `/kitchen.html`, or `/cashier.html` for the corresponding role page. The root URL retains the combined interface.
 4. Students, faculty, and staff can create their own accounts. An administrator creates Kitchen, Cashier, and additional Admin accounts in the Admin screen.
 
 The default server address is `127.0.0.1`. To allow devices on a trusted local network to connect, set `HOST=0.0.0.0` before starting the server and open `http://<this-computer-LAN-IP>:4173` on those devices. Do not expose this development server directly to the public internet; use HTTPS and a production reverse proxy before handling real credentials or payments.
@@ -57,7 +38,7 @@ The default server address is `127.0.0.1`. To allow devices on a trusted local n
 - Students can hide their own orders from their view. This does not delete the accounting record.
 - Receipt PDF output uses the browser's **Print / Save as PDF** dialog.
 
-`index.html` also runs directly as a local-only demo when opened from disk. Local demo data is browser storage only and does not provide account privacy, cross-device sync, or server backups. Use the server URL for the SQLite-backed app.
+Use the server URL for authenticated accounts, shared cross-page orders, and SQLite-backed storage.
 
 Menu photos are stored locally under `assets/food/` and matched to menu categories.
 

@@ -106,6 +106,35 @@
     .auth-modal .primary-button:hover { background: #c1d9ae; }
     .auth-modal .auth-switch { color: #bad6a9; }
     .auth-modal .auth-switch:hover { color: #e3c68b; }
+    .page-link { color: #245c3e; font-size: 13px; font-weight: 650; text-decoration: none; }
+    .page-link:hover { text-decoration: underline; }
+    body[data-interface="all"] .page-link { display: none; }
+    body[data-interface="student"] .role-switch,
+    body[data-interface="kitchen"] .role-switch,
+    body[data-interface="cashier"] .role-switch { display: none; }
+    body[data-interface="student"] #kitchenView,
+    body[data-interface="student"] #settingsView,
+    body[data-interface="student"] #adminView,
+    body[data-interface="kitchen"] #studentHero,
+    body[data-interface="kitchen"] #studentView,
+    body[data-interface="kitchen"] #ordersView,
+    body[data-interface="kitchen"] #adminView,
+    body[data-interface="kitchen"] #ordersNav,
+    body[data-interface="kitchen"] #basketJump,
+    body[data-interface="kitchen"] #cashierPageLink,
+    body[data-interface="kitchen"] .auth-switch,
+    body[data-interface="cashier"] #studentHero,
+    body[data-interface="cashier"] #studentView,
+    body[data-interface="cashier"] #ordersView,
+    body[data-interface="cashier"] #kitchenView,
+    body[data-interface="cashier"] #settingsView,
+    body[data-interface="cashier"] #ordersNav,
+    body[data-interface="cashier"] #basketJump,
+    body[data-interface="cashier"] #kitchenPageLink,
+    body[data-interface="cashier"] .auth-switch { display: none !important; }
+    body[data-interface="student"] #studentPageLink,
+    body[data-interface="kitchen"] #kitchenPageLink,
+    body[data-interface="cashier"] #cashierPageLink { display: none; }
     @media print {
       body * { visibility: hidden !important; }
       #receiptPrint, #receiptPrint * { visibility: visible !important; }
@@ -404,6 +433,9 @@
       </a>
       <div class="top-actions">
         <button class="top-link nav-orders" id="ordersNav" type="button">My orders</button>
+        <a class="top-link page-link" id="studentPageLink" href="/student.html" target="_top">Student menu</a>
+        <a class="top-link page-link" id="kitchenPageLink" href="/kitchen.html" target="_top">Kitchen</a>
+        <a class="top-link page-link" id="cashierPageLink" href="/cashier.html" target="_top">Cash desk</a>
         <button class="top-link" id="accountNav" type="button">Sign in</button>
         <button class="top-link" id="settingsNav" type="button" hidden>Settings</button>
         <div class="role-switch" aria-label="Choose a dashboard">
@@ -601,7 +633,7 @@
         <section class="settings-panel"><h3>Payment audit log</h3><ul class="audit-list" id="paymentAudit"></ul></section>
       </section>
     </main>
-    <footer class="footer">Laxmi Caterers · Mukesh Patel School of Technology Management & Engineering · Demo mode: shared between tabs in this browser</footer>
+    <footer class="footer">Laxmi Caterers · Mukesh Patel School of Technology Management & Engineering</footer>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -883,6 +915,9 @@
     const categoryNames = ["Popular", "All menu", ...categoryOrder.filter(category => category === "Fruits" || menu.some(item => item.category === category))];
     const popularIds = new Set(["Oreo shake", "Masala dosa", "Vada pav", "Paneer butter masala", "Veg sandwich", "Veg biryani", "Pani puri", "Cold coffee with ice cream"]);
     const storeKey = "mpstme-canteen-demo-v1";
+    const requestedInterface = new URLSearchParams(location.search).get("interface");
+    const pageInterface = ["student", "kitchen", "cashier"].includes(requestedInterface) ? requestedInterface : "all";
+    document.body.dataset.interface = pageInterface;
     const localCustomerId = localStorage.getItem("mpstme-canteen-customer-id") || crypto.randomUUID();
     localStorage.setItem("mpstme-canteen-customer-id", localCustomerId);
     let state = { cart: {}, orders: [], settings: structuredClone(defaultSettings), paymentLogs: [] };
@@ -1154,16 +1189,26 @@
       renderAuthModal();
     }
 
+    function canUseInterface(user) {
+      if (pageInterface === "kitchen") return ["admin", "kitchen"].includes(user?.role);
+      if (pageInterface === "cashier") return ["admin", "cashier"].includes(user?.role);
+      return true;
+    }
+
+    function initialView() {
+      return pageInterface === "cashier" ? "admin" : pageInterface === "kitchen" ? "kitchen" : "student";
+    }
+
     function renderAuthModal() {
       const registration = authMode === "register";
       $("#modalRoot").innerHTML = `<div class="modal-backdrop" id="modalBackdrop"><section class="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-        <div class="modal-header"><div><h2 id="authTitle">${registration ? "Create your canteen account" : "Welcome back"}</h2><p>${registration ? "Sign up as a student, faculty member, or staff." : "Sign in to see your own orders and receipts."}</p></div><button class="close-button" id="closeModal" type="button" aria-label="Close">×</button></div>
+        <div class="modal-header"><div><h2 id="authTitle">${registration ? "Create your canteen account" : pageInterface === "kitchen" ? "Kitchen staff sign in" : pageInterface === "cashier" ? "Cash desk sign in" : "Welcome back"}</h2><p>${registration ? "Sign up as a student, faculty member, or staff." : pageInterface === "kitchen" ? "Sign in with your kitchen or admin account." : pageInterface === "cashier" ? "Sign in with your cashier or admin account." : "Sign in to see your own orders and receipts."}</p></div><button class="close-button" id="closeModal" type="button" aria-label="Close">×</button></div>
         <form id="authForm" class="auth-form">
           ${registration ? `<div class="form-field"><label for="authName">Full name</label><input id="authName" name="name" maxlength="100" required autocomplete="name"></div>
             <div class="form-field"><label for="authRole">I am a</label><select id="authRole" name="role"><option value="student">Student</option><option value="faculty">Faculty</option><option value="staff">Staff</option></select></div>` : ""}
-          <div class="form-field"><label for="authUsername">Username</label><input id="authUsername" name="username" minlength="3" maxlength="80" required autocomplete="username"></div>
-          <div class="form-field"><label for="authPassword">Password</label><input id="authPassword" name="password" type="password" minlength="10" maxlength="200" required autocomplete="${registration ? "new-password" : "current-password"}"></div>
-          <p class="demo-note">${registration ? "Use a password of at least 10 characters. Kitchen and cash-desk accounts are created by an admin." : "Your order history is private to your account."}</p>
+          <div class="form-field"><label for="authUsername">Username</label><input id="authUsername" name="username" minlength="3" maxlength="80" required autocomplete="username" placeholder="${registration ? "Choose a username (e.g. saai)" : "e.g. saai"}"></div>
+          <div class="form-field"><label for="authPassword">Password</label><input id="authPassword" name="password" type="password" minlength="${registration ? 10 : 1}" maxlength="200" required autocomplete="${registration ? "new-password" : "current-password"}" placeholder="${registration ? "At least 10 characters" : "Enter your password"}"></div>
+          <p class="demo-note">${registration ? "Use a password of at least 10 characters. Kitchen and cash-desk accounts are created by an admin." : pageInterface === "kitchen" ? "Only Kitchen and Admin accounts can access this page." : pageInterface === "cashier" ? "Only Cashier and Admin accounts can access this page." : "Your order history is private to your account."}</p>
           <button class="primary-button" type="submit">${registration ? "Create account" : "Sign in"}</button>
           <button class="auth-switch" id="authSwitch" type="button">${registration ? "Already registered? Sign in" : "New here? Create a student / faculty account"}</button>
         </form></section></div>`;
@@ -1471,6 +1516,14 @@
     }
 
     function setView(view) {
+      const pageAllowsView = pageInterface === "all"
+        || pageInterface === "student" && ["student", "orders"].includes(view)
+        || pageInterface === "kitchen" && ["kitchen", "settings"].includes(view)
+        || pageInterface === "cashier" && view === "admin";
+      if (!pageAllowsView) {
+        showToast(`Open the ${pageInterface === "cashier" ? "cash desk" : view === "kitchen" || view === "settings" ? "kitchen" : "student"} page for that screen.`);
+        return;
+      }
       if (backendMode) {
         const role = currentUser?.role;
         const allowed = view === "student" || view === "orders"
@@ -1481,7 +1534,7 @@
               ? ["admin", "cashier"].includes(role)
               : false;
         if (!allowed) {
-          showToast("Sign in with an account that has access to that screen.");
+          if (currentUser || pageInterface === "all") showToast("Sign in with an account that has access to that screen.");
           if (!currentUser) openAuthModal("login");
           return;
         }
@@ -1515,7 +1568,7 @@
       if (order.status === "collected") return "Collected";
       if (order.status === "awaiting-payment") return "Accepted · payment required before preparation";
       if (order.status === "ready" && order.paymentStatus !== "paid") return "Ready · payment pending at cash desk";
-      if (order.status === "ready") return "Ready · paid, collect at the counter";
+      if (order.status === "ready") return isDemoOnlinePayment(order) ? "Ready · demo only, collect at the counter" : "Ready · paid, collect at the counter";
       if ((order.tasks || []).some(task => task.status === "preparing")) return "Preparing";
       return "Accepted";
     }
@@ -1626,8 +1679,8 @@
         return `<article class="order-card">
           <div><div class="order-label">Order ${escapeHtml(order.id)} · ${new Date(order.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</div>
             <h3>${escapeHtml(order.customer)} <span style="font-weight:500;color:#78837a">· ${escapeHtml(order.role || "Student")}</span></h3>
-            <span class="payment-badge${orderPaymentStatus(order) === "paid" ? " paid" : ""}">${orderPaymentStatus(order) === "refunded" ? "Refunded" : orderPaymentStatus(order) === "paid" ? "Paid" : "Unpaid"}</span>
-            <div class="order-details">${items}<br>${order.status === "ready" ? order.paymentStatus === "paid" ? "Your order is ready and paid. Please collect it from the counter." : `Ready, payment pending. Please pay ${money(order.total)} at the cash desk.` :
+            <span class="payment-badge${orderPaymentStatus(order) === "paid" && !isDemoOnlinePayment(order) ? " paid" : ""}">${orderPaymentDisplayStatus(order)}</span>
+            <div class="order-details">${items}<br>${order.status === "ready" ? order.paymentStatus === "paid" ? isDemoOnlinePayment(order) ? "Your order is ready. This was a demo only; no money was charged. Please collect it from the counter." : "Your order is ready and paid. Please collect it from the counter." : `Ready, payment pending. Please pay ${money(order.total)} at the cash desk.` :
               order.status === "rejected" || order.status === "collected" ? "" :
                 `Ready in about ${estimate.total} min · countdown ${countdownUntil(order.estimatedReadyAt)}`}</div>${breakdown}</div>
             ${order.payment === "cod" ? `<div class="order-qr" aria-label="Cash desk payment QR">${qrSvg(order.qrCodeValue || `MPSTME-COD-${order.id}`)}<small>Order #${escapeHtml(order.id)} · COD QR</small></div>` : ""}
@@ -1861,7 +1914,7 @@
       $("#modalRoot").innerHTML = `<div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="receiptTitle" id="receiptPrint">
         <div class="modal-header"><div><div class="eyebrow">Laxmi Caterers · MPSTME</div><h2 id="receiptTitle">Order receipt #${escapeHtml(order.id)}</h2><p>${escapeHtml(order.customer)} · ${new Date(Number(order.createdAt)).toLocaleString()}</p></div><button class="close-button" id="closeModal" type="button" aria-label="Close receipt">×</button></div>
         <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th><th>Counter</th></tr></thead><tbody>${(order.items || []).map(item => `<tr><td>${escapeHtml(item.name)}</td><td>${Number(item.quantity)}</td><td>${money(item.price)}</td><td>${money(Number(item.price) * Number(item.quantity))}</td><td>${escapeHtml(stationName(item.station || 1))}</td></tr>`).join("")}</tbody><tfoot><tr><th colspan="3">Total</th><th>${money(order.total)}</th><th></th></tr></tfoot></table></div>
-        <p class="order-details">Payment: ${escapeHtml(order.paymentLabel || order.payment || "—")} · ${escapeHtml(orderPaymentStatus(order))} · Final status: ${escapeHtml(finalOrderStatus(order))}</p>
+        <p class="order-details">Payment: ${escapeHtml(order.paymentLabel || order.payment || "—")} · ${escapeHtml(orderPaymentDisplayStatus(order))} · Final status: ${escapeHtml(finalOrderStatus(order))}</p>
         ${order.rejectionReason || order.cancellationReason ? `<p class="unavailable-note">Reason: ${escapeHtml(order.rejectionReason || order.cancellationReason)}</p>` : ""}
         <h3>Order timeline & audit</h3><ul class="audit-list">${timeline || "<li>Order placed</li>"}${paymentLogs.map(log => `<li>${escapeHtml(log.action)} · ${escapeHtml(log.method || "—")} · ${money(log.amount)}${log.reason ? ` · ${escapeHtml(log.reason)}` : ""}<small>${new Date(Number(log.at)).toLocaleString()} · ${escapeHtml(log.by || "—")}</small></li>`).join("")}${auditTrail.map(entry => `<li>${escapeHtml(entry.action)} · ${escapeHtml(JSON.stringify(entry.details || {}))}<small>${new Date(Number(entry.at)).toLocaleString()} · ${escapeHtml(entry.by || "—")}</small></li>`).join("")}</ul>
         <div class="history-card-actions"><button class="settings-save" id="printReceiptButton" type="button">Print / Save as PDF</button><button class="order-action" id="shareReceiptButton" type="button">Share receipt</button></div>
@@ -2069,7 +2122,9 @@
 
     function notifyOrderReady(order) {
       showToast(orderPaymentStatus(order) === "paid"
-        ? `Your order #${order.id} is ready and paid. Please collect it from the counter.`
+        ? isDemoOnlinePayment(order)
+          ? `Your order #${order.id} is ready. Demo only; no money was charged. Please collect it from the counter.`
+          : `Your order #${order.id} is ready and paid. Please collect it from the counter.`
         : `Your order #${order.id} is ready. Please pay ${money(order.total)} at the cash desk.`);
       if ("vibrate" in navigator) navigator.vibrate([180, 90, 180]);
     }
@@ -2153,12 +2208,12 @@
             <div class="form-field"><label>How would you like to pay?</label>
               <div class="payment-options">
                 <label class="payment-option"><input type="radio" name="payment" value="cod"><span><strong>Cash on delivery</strong><small>Pay cash when you collect your order</small></span></label>
-                <label class="payment-option"><input type="radio" name="payment" value="upi" checked><span><strong>UPI</strong><small>Demo online payment · enter your UPI ID</small></span></label>
-                <label class="payment-option"><input type="radio" name="payment" value="card"><span><strong>Debit / Credit card</strong><small>Demo online payment</small></span></label>
+                <label class="payment-option"><input type="radio" name="payment" value="upi" checked><span><strong>UPI</strong><small>Demo only · enter any UPI ID</small></span></label>
+                <label class="payment-option"><input type="radio" name="payment" value="card"><span><strong>Debit / Credit card</strong><small>Demo only · no real charge</small></span></label>
               </div>
             </div>
-            <div id="upiField" class="form-field"><label for="upiId">UPI ID</label><input id="upiId" name="upiId" maxlength="80" autocomplete="off" placeholder="name@bank"></div>
-            <p class="demo-note">Demo online payment: no real money is charged. Never enter card numbers here. UPI ID is used only to demonstrate checkout.</p>
+            <div id="upiField" class="form-field"><label for="upiId">UPI ID</label><input id="upiId" name="upiId" maxlength="80" autocomplete="off" placeholder="Enter your UPI ID"></div>
+            <p class="demo-note">Test checkout only: any non-empty UPI ID is accepted, but it is not verified, saved, or used to transfer money. Never enter card numbers here.</p>
             <div class="grand-eta"><span>Ready in about</span><strong id="checkoutTotalEta">— min</strong></div>
             <div id="checkoutCounterBreakdown" class="counter-estimates"></div>
             <div class="total-line"><span>Order total</span><strong>${money(cartSubtotal())}</strong></div>
@@ -2237,7 +2292,7 @@
       const upiInput = $("#upiId");
       $("#upiField").hidden = payment !== "upi";
       upiInput.required = payment === "upi";
-      upiInput.pattern = payment === "upi" ? "[^\\s@]{2,256}@[A-Za-z0-9.]{2,64}" : "";
+      upiInput.removeAttribute("pattern");
     }
 
     async function placeOrder(form) {
@@ -2266,7 +2321,7 @@
       const createdAt = Date.now();
       let orderId = String(100 + Math.floor(Math.random() * 900));
       while (state.orders.some(order => order.id === orderId)) orderId = String(100 + Math.floor(Math.random() * 900));
-      const paymentLabel = payment === "cod" ? "Cash at desk" : `${payment.toUpperCase()} · demo paid`;
+      const paymentLabel = payment === "cod" ? "Cash at desk" : `${payment.toUpperCase()} · demo only, not charged`;
       const order = {
         id: orderId, customer: currentUser?.name || customer,
         customerId: currentCustomerId(),
@@ -2466,6 +2521,16 @@
     let cashFilter = "unpaid";
     function orderPaymentStatus(order) {
       return order.paymentStatus || (order.payment === "cod" ? "unpaid" : "paid");
+    }
+
+    function isDemoOnlinePayment(order) {
+      return ["upi", "card"].includes(order.payment);
+    }
+
+    function orderPaymentDisplayStatus(order) {
+      if (isDemoOnlinePayment(order)) return "Demo · not charged";
+      const status = orderPaymentStatus(order);
+      return status === "refunded" ? "Refunded" : status === "paid" ? "Paid" : "Unpaid";
     }
 
     function kitchenStatus(order) {
@@ -2957,6 +3022,12 @@
             method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload)
           });
           currentUser = result.user;
+          if (!canUseInterface(currentUser)) {
+            await apiRequest("/api/auth/logout", { method: "POST" });
+            currentUser = null;
+            showToast(`This page requires an authorized ${pageInterface === "cashier" ? "cash desk" : "kitchen"} account.`);
+            return;
+          }
           sessionChannel?.postMessage({ userId: currentUser.id });
           sharedQueueLoad = {};
           lastQueuePoll = 0;
@@ -2966,6 +3037,7 @@
           applySessionUi();
           $("#modalRoot").innerHTML = "";
           showToast(`Welcome, ${currentUser.name}. Your account is ready.`);
+          if (pageInterface !== "all") setView(initialView());
           if (currentUser.role === "admin") void loadAdminLedger(true);
         } catch (error) {
           showToast(error.message);
@@ -3113,7 +3185,7 @@
               ? `Order #${order.id} accepted. Please pay ${money(order.total)} at the cash desk before preparation.`
               : `Order #${order.id} accepted · ready in about ${countdownUntil(order.estimatedReadyAt)} min.`);
           }
-          if (orderPaymentStatus(previous) !== "paid" && orderPaymentStatus(order) === "paid") showToast(`Payment received for order #${order.id}.`);
+          if (orderPaymentStatus(previous) !== "paid" && orderPaymentStatus(order) === "paid" && !isDemoOnlinePayment(order)) showToast(`Payment received for order #${order.id}.`);
           if (order.status === "ready" && previous.status !== "ready") notifyOrderReady(order);
           if (order.status === "rejected" && previous.status !== "rejected") showToast(`Order #${order.id} rejected · ${order.rejectionReason || "please contact the canteen"}`);
           if (order.status === "cancelled" && previous.status !== "cancelled") showToast(`Order #${order.id} cancelled · ${order.cancellationReason || "contact the canteen"}`);
@@ -3175,10 +3247,15 @@
         try {
           const session = await apiRequest("/api/auth/me");
           currentUser = session.user;
-          lastQueuePoll = 0;
-          restoreAccountCart();
-          await refreshBackendState();
-          await refreshSharedQueueLoad();
+          if (!canUseInterface(currentUser)) {
+            await apiRequest("/api/auth/logout", { method: "POST" });
+            currentUser = null;
+          } else {
+            lastQueuePoll = 0;
+            restoreAccountCart();
+            await refreshBackendState();
+            await refreshSharedQueueLoad();
+          }
         } catch (error) {
           if (!String(error.message).includes("sign in")) console.error("Could not restore the canteen server session.", error);
         }
@@ -3189,6 +3266,7 @@
       renderMenu();
       renderCart();
       renderOrders();
+      if (pageInterface !== "all") setView(initialView());
       if (storageReadFailed) showToast("Saved orders couldn't be loaded. New orders will still work in this tab.");
     }
 

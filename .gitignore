@@ -8,6 +8,3 @@ node_modules/
 .env.*
 !.env.example
 /Laxmi Caterers Menu New MPSTME.pdf
-__pycache__/
-*.py[cod]
-.streamlit/secrets.toml
