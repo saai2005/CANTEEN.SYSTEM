@@ -14,7 +14,7 @@ const DATA_DIR = process.env.CANTEEN_DATA_DIR || path.join(ROOT, "data");
 const DB_PATH = path.join(DATA_DIR, "canteen.sqlite");
 const BACKUP_DIR = path.join(DATA_DIR, "backups");
 const PORT = Number(process.env.PORT || 4173);
-const HOST = process.env.HOST || "127.0.0.1";
+const HOST = process.env.HOST || "0.0.0.0";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const ROLES = new Set(["student", "faculty", "staff", "kitchen", "cashier", "admin"]);
 const COUNTER_NAMES = {
@@ -279,6 +279,13 @@ function cookieValue(request, name) {
   const cookies = request.headers.cookie || "";
   const token = cookies.split(";").map(value => value.trim()).find(value => value.startsWith(`${name}=`));
   return token ? decodeURIComponent(token.slice(name.length + 1)) : "";
+}
+
+function buildSessionCookie(request, token, maxAgeSeconds = SESSION_TTL_MS / 1000) {
+  const isHttps = request.headers["x-forwarded-proto"] === "https" || Boolean(request.socket && request.socket.encrypted);
+  const secure = isHttps ? "; Secure" : "";
+  if (!token) return "canteen_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0" + secure;
+  return "canteen_session=" + encodeURIComponent(token) + "; HttpOnly; SameSite=Lax; Path=/; Max-Age=" + maxAgeSeconds + secure;
 }
 
 function requireUser(request) {
@@ -707,7 +714,7 @@ async function handle(request, response) {
       const user = createUser(String(body.username || "").trim(), String(body.name || "").trim(), String(body.password || ""), role);
       const token = crypto.randomBytes(32).toString("base64url");
       statements.insertSession.run(crypto.createHash("sha256").update(token).digest("hex"), user.id, Date.now() + SESSION_TTL_MS);
-      sendJson(response, 201, { user }, { "set-cookie": `canteen_session=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_TTL_MS / 1000}` });
+      sendJson(response, 201, { user }, { "set-cookie": buildSessionCookie(request, token) });
       return;
     }
     if (method === "POST" && pathname === "/api/auth/login") {
@@ -718,7 +725,7 @@ async function handle(request, response) {
       const token = crypto.randomBytes(32).toString("base64url");
       statements.insertSession.run(crypto.createHash("sha256").update(token).digest("hex"), row.id, Date.now() + SESSION_TTL_MS);
       const user = { id: row.id, username: row.username, name: row.display_name, role: row.role };
-      sendJson(response, 200, { user }, { "set-cookie": `canteen_session=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_TTL_MS / 1000}` });
+      sendJson(response, 200, { user }, { "set-cookie": buildSessionCookie(request, token) });
       return;
     }
     if (method === "POST" && pathname === "/api/auth/logout") {
@@ -728,7 +735,7 @@ async function handle(request, response) {
       assertClientIdentity(request, user);
       const token = cookieValue(request, "canteen_session");
       if (token) statements.deleteSession.run(crypto.createHash("sha256").update(token).digest("hex"));
-      sendJson(response, 200, { ok: true }, { "set-cookie": "canteen_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0" });
+      sendJson(response, 200, { ok: true }, { "set-cookie": buildSessionCookie(request, null) });
       return;
     }
     const user = requireUser(request);
@@ -944,7 +951,7 @@ async function handle(request, response) {
   const relative = decodeURIComponent(pathname === "/" ? "/index.html" : pathname);
   const file = path.resolve(ROOT, `.${relative}`);
   if (!file.startsWith(`${ROOT}${path.sep}`) || !fs.existsSync(file) || !fs.statSync(file).isFile()) throw httpError(404, "File not found.");
-  const contentTypes = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".jpg": "image/jpeg", ".png": "image/png", ".svg": "image/svg+xml", ".pdf": "application/pdf" };
+  const contentTypes = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".svg": "image/svg+xml", ".pdf": "application/pdf", ".ico": "image/x-icon", ".webp": "image/webp", ".json": "application/json; charset=utf-8", ".txt": "text/plain; charset=utf-8" };
   response.writeHead(200, { "content-type": contentTypes[path.extname(file)] || "application/octet-stream", "x-content-type-options": "nosniff", "cache-control": path.extname(file) === ".html" ? "no-cache" : "public, max-age=3600" });
   fs.createReadStream(file).pipe(response);
 }
@@ -971,39 +978,81 @@ function applyRetentionPolicy() {
   if (result.changes) recordAction({ id: null, name: "System" }, "auto-archive", "orders", null, { years, count: result.changes, before: cutoff.toISOString() });
 }
 
-async function bootstrapAdmin() {
-  if (db.prepare("SELECT 1 FROM users WHERE role='admin' LIMIT 1").get()) return;
-  const initialPassword = process.env.CANTEEN_ADMIN_PASSWORD;
-  if (process.argv[2] !== "--create-admin" && !initialPassword) return;
-  const username = process.argv[3] || process.env.CANTEEN_ADMIN_USERNAME || "";
-  const name = process.argv[4] || process.env.CANTEEN_ADMIN_NAME || "";
-  const prompt = readline.createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    const password = initialPassword || await prompt.question("New admin password (10+ characters): ");
-    delete process.env.CANTEEN_ADMIN_PASSWORD;
-    const user = createUser(username, name, password, "admin");
-    console.log(`Created admin account "${user.username}". Start the app with: npm start`);
-  } finally { prompt.close(); }
+async function handleCliCommands() {
+  if (process.argv[2] === "--create-admin") {
+    const username = process.argv[3] || process.env.CANTEEN_ADMIN_USERNAME || "admin";
+    const name = process.argv[4] || process.env.CANTEEN_ADMIN_NAME || "Canteen Admin";
+    const existing = statements.userByName.get(username);
+    if (existing) {
+      console.log(`Admin account "${username}" already exists.`);
+      return;
+    }
+    const prompt = readline.createInterface({ input: process.stdin, output: process.stdout });
+    try {
+      const password = process.env.CANTEEN_ADMIN_PASSWORD || await prompt.question("New admin password (10+ characters): ");
+      delete process.env.CANTEEN_ADMIN_PASSWORD;
+      const user = createUser(username, name, password, "admin");
+      console.log(`Created admin account "${user.username}". Start the app with: npm start`);
+    } finally { prompt.close(); }
+  }
 }
 
-function bootstrapDemoStudent() {
-  const username = process.env.CANTEEN_DEMO_USERNAME || "";
-  const password = process.env.CANTEEN_DEMO_PASSWORD || "";
-  if (!username || !password) return;
-  const existing = statements.userByName.get(username);
-  if (existing) {
-    if (existing.role !== "student") throw new Error(`Configured demo account "${username}" already exists with a different role.`);
-    return;
+function bootstrapSeedAccounts() {
+  const seedAccounts = [
+    {
+      username: process.env.CANTEEN_ADMIN_USERNAME || "admin",
+      name: process.env.CANTEEN_ADMIN_NAME || "Canteen Admin",
+      password: process.env.CANTEEN_ADMIN_PASSWORD || "admin12345",
+      role: "admin",
+      minLen: 8
+    },
+    {
+      username: "canteen-admin",
+      name: "Canteen Admin",
+      password: process.env.CANTEEN_ADMIN_PASSWORD || "admin12345",
+      role: "admin",
+      minLen: 8
+    },
+    {
+      username: process.env.CANTEEN_KITCHEN_USERNAME || "kitchen",
+      name: "Kitchen Head",
+      password: process.env.CANTEEN_KITCHEN_PASSWORD || "kitchen12345",
+      role: "kitchen",
+      minLen: 8
+    },
+    {
+      username: process.env.CANTEEN_CASHIER_USERNAME || "cashier",
+      name: "Cash Desk",
+      password: process.env.CANTEEN_CASHIER_PASSWORD || "cashier12345",
+      role: "cashier",
+      minLen: 8
+    },
+    {
+      username: process.env.CANTEEN_DEMO_USERNAME || "saai",
+      name: process.env.CANTEEN_DEMO_NAME || "Sai Demo",
+      password: process.env.CANTEEN_DEMO_PASSWORD || "saai12345",
+      role: "student",
+      minLen: 8
+    }
+  ];
+
+  for (const account of seedAccounts) {
+    if (!account.username || !account.password) continue;
+    const existing = statements.userByName.get(account.username);
+    if (!existing) {
+      try {
+        createUser(account.username, account.name, account.password, account.role, account.minLen);
+        console.log(`Provisioned initial ${account.role} account: ${account.username}`);
+      } catch (err) {
+        console.warn(`Could not seed ${account.username}: ${err.message}`);
+      }
+    }
   }
-  const name = process.env.CANTEEN_DEMO_NAME || "Sai Demo";
-  const user = createUser(username, name, password, "student", 8);
-  delete process.env.CANTEEN_DEMO_PASSWORD;
-  console.log(`Created configured demo student "${user.username}".`);
 }
 
 async function main() {
-  await bootstrapAdmin();
-  bootstrapDemoStudent();
+  await handleCliCommands();
+  bootstrapSeedAccounts();
   backupDatabase();
   applyRetentionPolicy();
   setInterval(() => { backupDatabase(); applyRetentionPolicy(); }, 24 * 60 * 60 * 1000).unref();
@@ -1015,7 +1064,41 @@ async function main() {
       else response.destroy();
     });
   });
-  server.listen(PORT, HOST, () => console.log(`MPSTME Canteen is available at http://localhost:${PORT}`));
+
+  server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`\n❌ Error: Port ${PORT} is already in use by another process.`);
+      console.error("To fix this in Windows PowerShell, terminate the lingering node process:");
+      console.error(`Stop-Process -Id (Get-NetTCPConnection -LocalPort ${PORT}).OwningProcess -Force`);
+      console.error(`Or start on a different port: $env:PORT="${PORT + 1}"; npm start\n`);
+    } else {
+      console.error("Server error:", error);
+    }
+    process.exit(1);
+  });
+
+  server.listen(PORT, HOST, () => {
+    const displayHost = (HOST === "0.0.0.0" || HOST === "127.0.0.1") ? "localhost" : HOST;
+    console.log(`\n=================================================`);
+    console.log(`🍽️  MPSTME New Canteen Server is Live!`);
+    console.log(`=================================================`);
+    console.log(`- Local App:    http://${displayHost}:${PORT}`);
+    console.log(`- Student Menu: http://${displayHost}:${PORT}/student.html`);
+    console.log(`- Kitchen Board:http://${displayHost}:${PORT}/kitchen.html`);
+    console.log(`- Cash Desk:    http://${displayHost}:${PORT}/cashier.html`);
+    console.log(`- Health Check: http://${displayHost}:${PORT}/api/health`);
+    console.log(`=================================================\n`);
+  });
 }
 
-main().catch(error => { console.error(error); process.exitCode = 1; });
+if (require.main === module) {
+  main().catch(error => { console.error(error); process.exitCode = 1; });
+}
+
+module.exports = {
+  handle,
+  db,
+  statements,
+  bootstrapSeedAccounts,
+  createUser
+};

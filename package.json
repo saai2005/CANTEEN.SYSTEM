@@ -5,6 +5,7 @@
   "description": "MPSTME New Canteen ordering app and SQLite backend",
   "scripts": {
     "start": "node server.js",
+    "dev": "node server.js",
     "test": "node --test"
   },
   "engines": {

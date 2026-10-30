@@ -436,6 +436,7 @@
         <a class="top-link page-link" id="studentPageLink" href="/student.html" target="_top">Student menu</a>
         <a class="top-link page-link" id="kitchenPageLink" href="/kitchen.html" target="_top">Kitchen</a>
         <a class="top-link page-link" id="cashierPageLink" href="/cashier.html" target="_top">Cash desk</a>
+        <a class="top-link page-link" id="adminPageLink" href="/" target="_top">Full app & Admin</a>
         <button class="top-link" id="accountNav" type="button">Sign in</button>
         <button class="top-link" id="settingsNav" type="button" hidden>Settings</button>
         <div class="role-switch" aria-label="Choose a dashboard">
@@ -1208,7 +1209,14 @@
             <div class="form-field"><label for="authRole">I am a</label><select id="authRole" name="role"><option value="student">Student</option><option value="faculty">Faculty</option><option value="staff">Staff</option></select></div>` : ""}
           <div class="form-field"><label for="authUsername">Username</label><input id="authUsername" name="username" minlength="3" maxlength="80" required autocomplete="username" placeholder="${registration ? "Choose a username (e.g. saai)" : "e.g. saai"}"></div>
           <div class="form-field"><label for="authPassword">Password</label><input id="authPassword" name="password" type="password" minlength="${registration ? 10 : 1}" maxlength="200" required autocomplete="${registration ? "new-password" : "current-password"}" placeholder="${registration ? "At least 10 characters" : "Enter your password"}"></div>
-          <p class="demo-note">${registration ? "Use a password of at least 10 characters. Kitchen and cash-desk accounts are created by an admin." : pageInterface === "kitchen" ? "Only Kitchen and Admin accounts can access this page." : pageInterface === "cashier" ? "Only Cashier and Admin accounts can access this page." : "Your order history is private to your account."}</p>
+          ${registration ? "" : `<div class="quick-logins" style="margin: 0 0 10px; display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 10px; color: #bad6a9; font-weight: 600;">Demo fill:</span>
+            <button type="button" onclick="document.getElementById('authUsername').value='saai';document.getElementById('authPassword').value='saai12345';" style="padding: 3px 7px; font-size: 9px; border-radius: 6px; border: 1px solid #365b47; background: #19382b; color: #edf5ed; cursor: pointer;">Student</button>
+            <button type="button" onclick="document.getElementById('authUsername').value='kitchen';document.getElementById('authPassword').value='kitchen12345';" style="padding: 3px 7px; font-size: 9px; border-radius: 6px; border: 1px solid #365b47; background: #19382b; color: #edf5ed; cursor: pointer;">Kitchen</button>
+            <button type="button" onclick="document.getElementById('authUsername').value='cashier';document.getElementById('authPassword').value='cashier12345';" style="padding: 3px 7px; font-size: 9px; border-radius: 6px; border: 1px solid #365b47; background: #19382b; color: #edf5ed; cursor: pointer;">Cashier</button>
+            <button type="button" onclick="document.getElementById('authUsername').value='admin';document.getElementById('authPassword').value='admin12345';" style="padding: 3px 7px; font-size: 9px; border-radius: 6px; border: 1px solid #365b47; background: #19382b; color: #edf5ed; cursor: pointer;">Admin</button>
+          </div>`}
+          <p class="demo-note">${registration ? "Use a password of at least 10 characters. Kitchen and cash-desk accounts are created by an admin." : pageInterface === "kitchen" ? "Sign in as Kitchen (kitchen / kitchen12345) or Admin (admin / admin12345)." : pageInterface === "cashier" ? "Sign in as Cashier (cashier / cashier12345) or Admin (admin / admin12345)." : "Sign in as Student (saai / saai12345) or Admin (admin / admin12345), or create a student account."}</p>
           <button class="primary-button" type="submit">${registration ? "Create account" : "Sign in"}</button>
           <button class="auth-switch" id="authSwitch" type="button">${registration ? "Already registered? Sign in" : "New here? Create a student / faculty account"}</button>
         </form></section></div>`;
