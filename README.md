@@ -63,7 +63,7 @@ The server listens on `0.0.0.0`, allowing local connection at `http://localhost:
 
 Use the server URL for authenticated accounts, shared cross-page orders, and SQLite-backed storage.
 
-Menu photos are stored locally under `assets/food/` and matched to menu categories.
+Menu photos are stored locally under `assets/food/` and matched to menu items. Openly licensed photo credits and source links are listed in [`assets/food/PHOTO_CREDITS.md`](assets/food/PHOTO_CREDITS.md).
 
 ## Shared counter wait estimates
 

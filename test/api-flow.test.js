@@ -71,7 +71,15 @@ test("1. Health check returns 200 and sqlite status", async () => {
 });
 
 test("2. Static HTML files and assets are served correctly", async () => {
-  const routes = ["/", "/student.html", "/kitchen.html", "/cashier.html", "/favicon.ico"];
+  const routes = [
+    "/", "/student.html", "/kitchen.html", "/cashier.html", "/favicon.ico",
+    "/assets/food/bread-pakoda.jpg", "/assets/food/coffee.jpg", "/assets/food/dahi-vada.jpg",
+    "/assets/food/chapati.jpg", "/assets/food/frankie.jpg", "/assets/food/fries.jpg",
+    "/assets/food/hot-chocolate.jpg",
+    "/assets/food/manchow-soup.jpg", "/assets/food/manchurian.jpg", "/assets/food/misal-pav.jpg",
+    "/assets/food/naan.jpg", "/assets/food/paratha.jpg", "/assets/food/poha.jpg",
+    "/assets/food/potato-chips.jpg", "/assets/food/upma.jpg", "/assets/food/vegetable-cutlet.jpg"
+  ];
   for (const route of routes) {
     const res = await dispatch(route);
     assert.equal(res.status, 200, `Expected 200 for ${route}`);

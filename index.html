@@ -681,15 +681,31 @@
       chaat: "assets/food/chaat.jpg",
       choleBhature: "assets/food/chole-bhature.jpg",
       pavBhaji: "assets/food/pav-bhaji.jpg",
+      misalPav: "assets/food/misal-pav.jpg",
+      poha: "assets/food/poha.jpg",
+      upma: "assets/food/upma.jpg",
+      dahiVada: "assets/food/dahi-vada.jpg",
       sandwich: "assets/food/sandwich.jpg",
+      breadPakoda: "assets/food/bread-pakoda.jpg",
+      vegetableCutlet: "assets/food/vegetable-cutlet.jpg",
+      frankie: "assets/food/frankie.jpg",
       pizza: "assets/food/pizza.jpg",
       pasta: "assets/food/pasta.jpg",
+      fries: "assets/food/fries.jpg",
+      potatoChips: "assets/food/potato-chips.jpg",
       noodles: "assets/food/noodles.jpg",
       friedRice: "assets/food/fried-rice.jpg",
+      manchurian: "assets/food/manchurian.jpg",
+      manchowSoup: "assets/food/manchow-soup.jpg",
       curry: "assets/food/paneer-curry.jpg",
+      naan: "assets/food/naan.jpg",
+      chapati: "assets/food/chapati.jpg",
+      paratha: "assets/food/paratha.jpg",
       biryani: "assets/food/biryani.jpg",
       egg: "assets/food/egg-toast.jpg",
       tea: "assets/food/tea.jpg",
+      coffee: "assets/food/coffee.jpg",
+      hotChocolate: "assets/food/hot-chocolate.jpg",
       shake: "assets/food/shake.jpg",
       juice: "assets/food/juice.jpg"
     };
@@ -698,43 +714,57 @@
       const n = (name || "").toLowerCase();
       const c = (category || "").toLowerCase();
 
-      // Precise item name matching
-      if (n.includes("dosa")) return foodPhotos.dosa;
+      if (n.includes("dosa") || n.includes("uttapam")) return foodPhotos.dosa;
       if (n.includes("idli")) return foodPhotos.idli;
-      if (n.includes("medu") || n.includes("wada") && !n.includes("vada pav") && !n.includes("wada pav")) return foodPhotos.idli;
-      if (n.includes("vada pav") || n.includes("wada pav") || n.includes("batata vada")) return foodPhotos.vadaPav;
+      if (n.includes("misal") || n.includes("missal")) return foodPhotos.misalPav;
+      if (n.includes("poha")) return foodPhotos.poha;
+      if (n.includes("upma")) return foodPhotos.upma;
+      if (n.includes("vada pav") || n.includes("wada pav") || n.includes("batata vada") || n.includes("potato vada")) return foodPhotos.vadaPav;
+      if (n.includes("dahi wada") || n.includes("dahi vada")) return foodPhotos.dahiVada;
+      if (n.includes("medu") || n.includes("wada")) return foodPhotos.idli;
       if (n.includes("samosa")) return foodPhotos.samosa;
       if (n.includes("pav bhaji")) return foodPhotos.pavBhaji;
       if (n.includes("chole") || n.includes("bhatura") || n.includes("puri bhaji") || n.includes("poori")) return foodPhotos.choleBhature;
-      if (n.includes("poha") || n.includes("upma") || n.includes("sheera")) return foodPhotos.idli;
-      if (n.includes("misal") || n.includes("missal")) return foodPhotos.pavBhaji;
-      if (n.includes("bhel") || n.includes("sev puri") || n.includes("pani puri") || n.includes("chaat") || n.includes("dahi puri") || n.includes("ragda") || n.includes("pakoda")) return foodPhotos.chaat;
-      if (n.includes("frankie") || n.includes("franky") || n.includes("roll") || n.includes("wrap")) return foodPhotos.sandwich;
+      if (n.includes("bhel") || n.includes("sev puri") || n.includes("pani puri") || n.includes("chaat") || n.includes("dahi puri") || n.includes("ragda")) return foodPhotos.chaat;
+      if (n.includes("frankie") || n.includes("franky") || n.includes("roll") || n.includes("wrap")) return foodPhotos.frankie;
+      if (n.includes("bread pakoda") || n.includes("bread pakora")) return foodPhotos.breadPakoda;
+      if (n.includes("pakoda") || n.includes("pakora")) return foodPhotos.breadPakoda;
+      if (n.includes("cutlet")) return foodPhotos.vegetableCutlet;
       if (n.includes("sandwich") || n.includes("toast") || n.includes("grilled") || n.includes("bun maska") || n.includes("bread butter")) return foodPhotos.sandwich;
       if (n.includes("pizza")) return foodPhotos.pizza;
-      if (n.includes("pasta") || n.includes("macaroni") || n.includes("fries") || n.includes("chips")) return foodPhotos.pasta;
+      if (n.includes("fries")) return foodPhotos.fries;
+      if (n.includes("chips")) return foodPhotos.potatoChips;
+      if (n.includes("pasta") || n.includes("macaroni")) return foodPhotos.pasta;
       if (n.includes("maggi") || n.includes("noodle") || n.includes("chowmein") || n.includes("chop suey")) return foodPhotos.noodles;
       if (n.includes("fried rice") || n.includes("schezwan rice") || n.includes("triple rice") || n.includes("singapore rice") || n.includes("shanghai rice")) return foodPhotos.friedRice;
-      if (n.includes("manchurian") || n.includes("chilli dry") || n.includes("chilly dry") || n.includes("crispy") || n.includes("spring roll") || n.includes("soup")) return foodPhotos.friedRice;
+      if (n.includes("manchow soup") || n.includes("soup")) return foodPhotos.manchowSoup;
+      if (n.includes("manchurian") && n.includes("rice")) return foodPhotos.friedRice;
+      if (n.includes("manchurian") || n.includes("chilli dry") || n.includes("chilly dry") || n.includes("crispy") || n.includes("spring roll")) return foodPhotos.manchurian;
       if (n.includes("biryani") || n.includes("pulao") || n.includes("jeera rice")) return foodPhotos.biryani;
-      if (n.includes("roti") || n.includes("naan") || n.includes("paratha") || n.includes("kulcha") || n.includes("chapati")) return foodPhotos.thali;
+      if (n.includes("paratha")) return foodPhotos.paratha;
+      if (n.includes("roti") || n.includes("chapati")) return foodPhotos.chapati;
+      if (n.includes("naan") || n.includes("kulcha")) return foodPhotos.naan;
       if (n.includes("paneer") || n.includes("curry") || n.includes("masala") || n.includes("korma") || n.includes("kofta") || n.includes("dal") || n.includes("chana") || n.includes("sabji") || n.includes("bhendi") || n.includes("kaju") || n.includes("soya") || n.includes("mutter") || n.includes("methi")) return foodPhotos.curry;
       if (n.includes("egg") || n.includes("omelette") || n.includes("bhurji") || n.includes("ghotala") || n.includes("anda")) return foodPhotos.egg;
-      if (n.includes("coffee") || n.includes("tea") || n.includes("chai") || n.includes("milk") || n.includes("bournvita") || n.includes("chocolate")) return foodPhotos.tea;
-      if (n.includes("shake") || n.includes("oreo") || n.includes("kitkat") || n.includes("cold coffee") || n.includes("lassi") || n.includes("buttermilk") || n.includes("falooda")) return foodPhotos.shake;
+      if (n.includes("shake") || n.includes("milkshake") || n.includes("lassi") || n.includes("buttermilk") || n.includes("falooda") || n.includes("cold coffee") || n.includes("oreo") || n.includes("kitkat")) return foodPhotos.shake;
+      if (n.includes("coffee")) return foodPhotos.coffee;
+      if (n.includes("hot chocolate")) return foodPhotos.hotChocolate;
+      if (n.includes("tea") || n.includes("chai") || n.includes("milk") || n.includes("bournvita") || n.includes("chocolate")) return foodPhotos.tea;
       if (n.includes("juice") || n.includes("soda") || n.includes("cooler") || n.includes("sharbat") || n.includes("mojito") || n.includes("lemonade") || n.includes("jaljeera") || n.includes("water")) return foodPhotos.juice;
       if (n.includes("thali") || n.includes("meal")) return foodPhotos.thali;
 
-      // Category based fallbacks
       if (c.includes("pav bhaji")) return foodPhotos.pavBhaji;
+      if (c.includes("breakfast") && n.includes("upma")) return foodPhotos.upma;
+      if (c.includes("breakfast")) return foodPhotos.idli;
       if (c.includes("south indian")) return foodPhotos.dosa;
       if (c.includes("hot beverages")) return foodPhotos.tea;
-      if (c.includes("breakfast")) return foodPhotos.idli;
       if (c.includes("egg")) return foodPhotos.egg;
-      if (c.includes("franky") || c.includes("frankie") || c.includes("sandwich")) return foodPhotos.sandwich;
+      if (c.includes("franky") || c.includes("frankie")) return foodPhotos.frankie;
+      if (c.includes("sandwich")) return foodPhotos.sandwich;
       if (c.includes("pizza")) return foodPhotos.pizza;
       if (c.includes("maggi")) return foodPhotos.noodles;
       if (c.includes("pasta")) return foodPhotos.pasta;
+      if (c.includes("snacks")) return foodPhotos.samosa;
       if (c.includes("chinese")) return foodPhotos.friedRice;
       if (c.includes("chaat")) return foodPhotos.chaat;
       if (c.includes("north indian")) return foodPhotos.curry;
