@@ -998,18 +998,20 @@ async function handleCliCommands() {
 }
 
 function bootstrapSeedAccounts() {
+  const adminPassword = process.env.CANTEEN_ADMIN_PASSWORD || "admin12345";
+  const customAdminUser = (process.env.CANTEEN_ADMIN_USERNAME || "").trim();
   const seedAccounts = [
     {
-      username: process.env.CANTEEN_ADMIN_USERNAME || "admin",
+      username: "admin",
       name: process.env.CANTEEN_ADMIN_NAME || "Canteen Admin",
-      password: process.env.CANTEEN_ADMIN_PASSWORD || "admin12345",
+      password: adminPassword,
       role: "admin",
       minLen: 8
     },
     {
       username: "canteen-admin",
       name: "Canteen Admin",
-      password: process.env.CANTEEN_ADMIN_PASSWORD || "admin12345",
+      password: adminPassword,
       role: "admin",
       minLen: 8
     },
@@ -1036,7 +1038,17 @@ function bootstrapSeedAccounts() {
     }
   ];
 
-  for (const account of seedAccounts) {
+      if (customAdminUser && customAdminUser !== "admin" && customAdminUser !== "canteen-admin") {
+      seedAccounts.push({
+        username: customAdminUser,
+        name: process.env.CANTEEN_ADMIN_NAME || "Canteen Admin",
+        password: adminPassword,
+        role: "admin",
+        minLen: 8
+      });
+    }
+
+    for (const account of seedAccounts) {
     if (!account.username || !account.password) continue;
     const existing = statements.userByName.get(account.username);
     if (!existing) {
