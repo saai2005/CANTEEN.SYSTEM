@@ -2,6 +2,10 @@
 
 The application is the Node.js/SQLite canteen system in `index.html` and `server.js`. Its student, kitchen, and cash-desk pages keep the existing interface and share the same authenticated API and order database.
 
+## Full project report
+
+The [PDF project report and viva guide](PROJECT_REPORT.pdf) explains the system in simple language, including the three pages, user roles, order pipeline, backend, database, queue-prediction ML, deployment, limitations, and viva questions with suggested answers. The [Markdown source](PROJECT_REPORT.md) is also available.
+
 ## Deploy the original UI on Render
 
 1. In Render, create a **Blueprint** from this GitHub repository's `main` branch. Render reads `render.yaml` and deploys the Node.js app on its free web-service plan.

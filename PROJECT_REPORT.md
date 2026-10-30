@@ -7,7 +7,9 @@
 **Institution:** Mukesh Patel School of Technology Management & Engineering (MPSTME)  
 **Project type:** Mobile-friendly, browser-based food ordering and canteen operations system  
 **Current implementation:** Three role-specific HTML entry pages, a shared HTML/CSS/JavaScript application, Node.js HTTP server, and SQLite database
-**Status:** Render-hosted demonstration system; UPI/card payments are simulated and Render's free local storage is temporary
+**Status:** Live on Render; UPI/card payments are simulated and the free service's local storage is temporary
+**Source repository:** `https://github.com/saai2005/CANTEEN.SYSTEM`
+**Role-page release:** `de879b8` (`Add dedicated canteen role pages`)
 
 ---
 
@@ -80,6 +82,7 @@ cashier.html ─┘                                                  └── s
 - The UI is built with standard HTML, CSS, and browser JavaScript; there is no separate front-end framework or bundler.
 - The student page presents the menu, cart, checkout, queue estimates, and customer history. The kitchen page presents incoming orders and preparation counters. The cash-desk page presents COD payments and handover. Admin controls remain in the combined root interface.
 - `student.html`, `kitchen.html`, and `cashier.html` are lightweight full-window HTML shells that load the shared app with a role-specific mode. They are separate entry pages, not three duplicated copies of the app.
+- The role pages load the shared app in a full-window iframe. This keeps the original styling and behavior consistent while giving each role a separate URL.
 - Role-specific pages filter navigation and views, while the Node.js server independently enforces permissions for every protected API action.
 - In server mode, the browser calls the same-origin JSON API and periodically checks for updated data.
 - In local-file demo mode, the app uses browser storage. That mode does not provide authenticated, cross-device records.
@@ -115,6 +118,7 @@ Order details are stored as JSON in the `orders.data_json` field. The payment an
 - [cashier.html](C:/Users/HP/OneDrive/Desktop/canteen/cashier.html) — cash-desk page entry point.
 - [index.html](C:/Users/HP/OneDrive/Desktop/canteen/index.html) — shared UI, menu catalog, application logic, and browser-side API integration.
 - [server.js](C:/Users/HP/OneDrive/Desktop/canteen/server.js) — HTTP API, SQLite schema, authentication, authorization, catalog validation, order-state checks, payment and admin auditing, exports, backup, and retention.
+- [PROJECT_REPORT.pdf](C:/Users/HP/OneDrive/Desktop/canteen/PROJECT_REPORT.pdf) — formatted project report and viva preparation guide.
 - [package.json](C:/Users/HP/OneDrive/Desktop/canteen/package.json) — Node.js engine requirement and `start`/`test` scripts. The project currently has no npm runtime dependencies.
 - [README.md](C:/Users/HP/OneDrive/Desktop/canteen/README.md) — local startup, account setup, network access, data location, backup, and payment limitations.
 - [Laxmi Caterers Menu New MPSTME.pdf](C:/Users/HP/OneDrive/Desktop/canteen/Laxmi%20Caterers%20Menu%20New%20MPSTME.pdf) — supplied menu reference.
@@ -409,7 +413,16 @@ Open `http://localhost:4173/student.html`, `http://localhost:4173/kitchen.html`,
 
 ### Render deployment
 
-The Render Blueprint starts the same Node.js server using `npm start`. The three role routes are `/student.html`, `/kitchen.html`, and `/cashier.html`; the root route remains the combined Admin interface. On the configured free plan, SQLite data is stored under `/tmp/canteen-data`, which is temporary and can be lost when the service restarts or redeploys.
+The Render Blueprint starts the same Node.js server using `npm start`. The public service is `https://mpstme-canteen.onrender.com`; its three role routes are `/student.html`, `/kitchen.html`, and `/cashier.html`, and the root route remains the combined Admin interface. The live health route is `/api/health`. Release `de879b8` was pushed to the repository's `main` branch and verified as Live in Render; all three role routes returned HTTP 200.
+
+The configured free plan stores SQLite data under `/tmp/canteen-data`. This is temporary storage: accounts, orders, and backups can be lost when the service sleeps, restarts, or redeploys. The current free deployment is suitable for a demonstration, not for retaining important production records.
+
+### Sign-in and input formats
+
+- The username field gives an example. Usernames are 3–80 characters and may contain letters, numbers, underscores, dots, `@`, plus signs, or hyphens.
+- New ordinary accounts require a password of 10–200 characters. A Render-configured demo account may use its specific configured minimum. Sign-in accepts 1–200 characters because it must allow existing credentials; the username and password still have to match a real account.
+- The example text is a hint, not an account-creation bypass. The server verifies credentials and applies account-role permissions.
+- At demo checkout, any non-empty UPI ID up to 80 characters is accepted. It is not verified, used to start a payment, or saved as a payment credential. No real money is charged.
 
 ### First administrator
 
@@ -442,6 +455,7 @@ Enter a password of at least 10 characters. On an existing installation, use the
 - API smoke check with two student accounts: a customer saw another customer's Meals queue count/workload, did not see the other account's own queue in the cross-customer aggregate, saw other counters remain independent, and received no customer name or order number from the queue API.
 - Browser smoke check: the signed-in student UI displayed the shared Meals workload and adjusted its wait estimate.
 - Page smoke check: all three dedicated HTML routes and `/api/health` returned HTTP 200 on an isolated local Node.js server.
+- Deployment check: Render showed release `de879b8` as Live; the public student, kitchen, and cash-desk pages returned HTTP 200 and `/api/health` reported `{ "ok": true, "sqlite": true }`.
 - Earlier API/browser checks covered student history privacy, admin ledger rendering, order status and payment flows; these checks are not a substitute for a maintained automated regression suite.
 
 ### Recommended tests to add
@@ -469,7 +483,7 @@ These are important to state accurately during a project review:
 4. **Preparation formula needs product-owner confirmation.** Current code uses the longest configured item prep time plus one minute per additional unit. The original example of roti 5 + sabji 15 → 20 minutes instead implies summing dissimilar item times. Choose one rule and test it.
 5. **Neural queue prediction is an early prototype.** It needs at least eight completed examples per counter before activation. It has no held-out accuracy evaluation and cannot model every real kitchen station/cook constraint.
 6. **Automated test coverage is limited.** The current three unit tests exercise the neural model, but most API workflows do not yet have automated regression coverage.
-7. **Development deployment is HTTP.** Use HTTPS and additional security hardening before public deployment.
+7. **Deployment security needs further hardening.** Render serves the public site over HTTPS, but the application cookie does not currently set the `Secure` attribute, and additional protections such as rate limiting, CSRF defenses, and monitoring should be considered before production use.
 8. **Backups are local.** Use an off-device backup and practice restoring it.
 9. **Some analytics are derived from currently available order/task records.** Treat them as operational estimates until completeness and reconciliation are validated with real canteen use.
 10. **Customer login is required in server mode.** The frontend includes sign-in/register controls so the server can enforce account ownership and preserve private order history.
@@ -620,7 +634,7 @@ No. It uses periodic HTTP polling (about every five seconds for shared queue wor
 It runs three neural model unit tests. They check feature normalization, the activation threshold, and workload-sensitive predictions; they do not prove all application workflows are covered.
 
 **33. What is the biggest deployment concern?**  
-The current app is a development HTTP service. It should not be exposed publicly without HTTPS, production deployment controls, and security hardening.
+The public Render URL uses HTTPS, but the app still needs stronger production controls. For example, secure-cookie settings, rate limiting, CSRF protections, monitoring, and durable backups should be reviewed before handling real payments or important long-term records.
 
 **34. What would you improve next?**  
 Add automated API/browser tests, verify every catalog entry against the menu PDF, agree on the prep-time formula with canteen staff, integrate a payment provider, improve realtime delivery, and add production deployment security.
