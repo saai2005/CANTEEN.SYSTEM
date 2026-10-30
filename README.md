@@ -1,8 +1,31 @@
 # MPSTME New Canteen
 
-The app is a responsive front end served by a small Node.js backend. SQLite keeps order history, payment and admin audit records, settings, and account data on this computer.
+This repository contains the original Node.js/SQLite application and a Python Streamlit edition for Streamlit Community Cloud. The Streamlit edition includes student sign-in and ordering, the full 272-item menu, per-counter kitchen tickets, a cash desk, demo-only UPI/card selections, and per-counter neural-network wait estimates.
+
+## Run the Streamlit edition
+
+1. Install Python 3.11 or newer.
+2. Install its dependencies:
+
+   ```powershell
+   python -m pip install -r requirements.txt
+   ```
+3. Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml`. Replace the placeholder passwords with private values; do not commit `secrets.toml`.
+4. Start the app:
+
+   ```powershell
+   streamlit run streamlit_app.py
+   ```
+
+The demo student username is configured as `saai`; set `DEMO_PASSWORD` in the private secrets file to the requested demo password. Optional kitchen, cashier, and administrator accounts are provisioned from the other secret values. Student self-registration is also available.
+
+### Deploy on Streamlit Community Cloud
+
+Create an app from this repository's `main` branch, set the app file to `streamlit_app.py`, and add the values from `.streamlit/secrets.toml.example` in **App settings → Secrets**. Keep the passwords in Streamlit's secret store, not in GitHub. The app uses local SQLite for demonstration data; Community Cloud's local filesystem is not a durable database, so orders and accounts can be lost when the app is restarted or redeployed. UPI and card choices are demonstrations, not real payment processing.
 
 ## Run locally
+
+The original Node.js app remains available separately:
 
 1. Install Node.js 22.5 or newer (Node.js 24 is recommended).
 2. In this folder, create the first administrator:
